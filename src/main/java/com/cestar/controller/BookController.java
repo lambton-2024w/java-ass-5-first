@@ -1,19 +1,19 @@
 package com.cestar.controller;
 
 
-import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.cestar.beans.Book;
 import com.cestar.dao.BookDao;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 
-@Path("books")
+
+@RestController
+@RequestMapping(value="/books")
 public class BookController {
 	private BookDao bookDao;
 
@@ -21,14 +21,13 @@ public class BookController {
 		this.bookDao = bookDao;
 	}
 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public List<Book> getBooks() {
-//		return new ArrayList<Book>();
-		return bookDao.getBooks();
+	@RequestMapping(value="/", method=RequestMethod.GET, produces = "application/json")
+	public List<Book>  getBooks() {
+		List<Book> books =  bookDao.getBooks();
+		return books;
 	}
 
-	@POST
+	@RequestMapping(value="/", method=RequestMethod.POST)
 	public Book addBook(Book book) {
 		return bookDao.saveBook(book);
 	}
