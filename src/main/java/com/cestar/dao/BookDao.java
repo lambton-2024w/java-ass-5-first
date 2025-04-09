@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -41,10 +43,44 @@ public class BookDao {
 		String sqlInsert = "INSERT INTO book (id, name, author, price, genre) + VALUES (?, ?, ?, ?, ?)";
 		int status = template.update(sqlInsert, book.getId(), book.getName(), book.getAuthor(), book.getPrice(),
 				book.getGenre());
-		if (status > 0)
-			return book;
-		else
+		return status > 0 ? book : null;
+	}
+
+	public Book updateBook(int bookId, Book book) {
+		try {
+			String sqlUpdate = "UPDATE book SET name = ?, author = ?, price = ?, genre = ? WHERE id = ?";
+			int status = template.update(sqlUpdate, book.getName(), book.getAuthor(), book.getPrice(), book.getGenre(),
+					bookId);
+
+			return status > 0 ? book : null;
+		} catch (DataAccessException e) {
+			e.printStackTrace();
 			return null;
+		}
+	}
+
+	public Book deleteBook(int bookId) {
+		try {
+			// First retrieve the book
+			String sqlSelect = "SELECT * FROM book WHERE id = ?";
+			Book deletedBook = template.queryForObject(sqlSelect, (rs, rowNum) -> new Book(rs.getInt("id"),
+					rs.getString("name"), rs.getString("author"), rs.getDouble("price"), rs.getString("genre")),
+					bookId);
+
+			// Then delete it
+			String sqlDelete = "DELETE FROM book WHERE id = ?";
+			int rowsAffected = template.update(sqlDelete, bookId);
+
+			return rowsAffected > 0 ? deletedBook : null;
+
+		} catch (EmptyResultDataAccessException e) {
+			// Book not found
+			return null;
+		} catch (DataAccessException e) {
+			// Other database errors
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }
